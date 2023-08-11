@@ -68,7 +68,7 @@
                         </p>
                     </div>                  
                     <hr>
-                    <h2>W3.CSS Web Site Templates</h2>                    
+                    <h2>W4.CSS Web Site Templates</h2>                    
                     <p>We have created some responsive W3CSS templates for you to use.</p>
                     <p>You are free to modify, save, share, use or do whatever you want with them:</p>                                        
                     <div class="w3-panel w3-light-grey w3-padding-16 w3-card">

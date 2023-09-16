@@ -1,27 +1,38 @@
-node(){
-
-	def sonarHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-	
-	stage('Code Checkout'){
-		checkout changelog: false, poll: false, scm: scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsId: 'GitHubCreds', url: 'https://github.com/anujdevopslearn/MavenBuild']])
-	}
-	stage('Build Automation'){
-		sh """
-			ls -lart
-			mvn clean install
-			ls -lart target
-
-		"""
-	}
-	
-	stage('Code Scan'){
-		withSonarQubeEnv(credentialsId: 'SonarQubeCreds') {
-			sh "${sonarHome}/bin/sonar-scanner"
-		}
-		
-	}
-	
-	stage('Code Deployment'){
-		deploy adapters: [tomcat9(credentialsId: 'TomcatCreds', path: '', url: 'http://54.197.62.94:8080/')], contextPath: 'Planview', onFailure: false, war: 'target/*.war'
-	}
-}
+pipeline {
+    agent any
+     tools {
+        maven 'maven' 
+    }
+    stages {
+        stage('clone') {
+            steps{
+               git credentialsId: 'gtihublogin', url: 'https://github.com/srinivasulureddy22/maven-pp.git'
+            }
+        }
+        stage('maven version') {
+            steps{
+               sh 'mvn --version'
+            }
+        }
+        stage('maven') {
+            steps{
+               sh 'mvn clean install'
+            }
+        }
+        stage('SonarQube analysis') {
+//    def scannerHome = tool 'SonarScanner 4.0';
+        steps{
+        withSonarQubeEnv('sonarqube-8.9') { 
+        // If you have configured more than one global server connection, you can specify its name
+//      sh "${scannerHome}/bin/sonar-scanner"
+        sh "mvn sonar:sonar"
+    }
+        }
+        }
+        stage('deployment') {
+           steps{
+              deploy adapters: [tomcat9(credentialsId: '32bd3d00-bd53-4698-8b5b-c469be02beca', path: '', url: 'http://13.127.9.171:8080')], contextPath: 'tomcattesting', war: '**/*.war'
+            }
+        }
+    }
+}    

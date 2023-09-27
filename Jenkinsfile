@@ -19,7 +19,7 @@ pipeline {
                sh 'mvn clean install'
             }
         }
-        stage('SonarQube analysis') {
+        stage('sonar') {
 //    def scannerHome = tool 'SonarScanner 4.0';
         steps{
         withSonarQubeEnv('sonarqube-8.9') { 

@@ -19,20 +19,25 @@ pipeline {
                sh 'mvn clean install'
             }
         }
-        stage('sonarqube') {
-//    def scannerHome = tool 'SonarScanner 4.0';
-        steps{
-        withSonarQubeEnv('sonarqube') { 
-        // If you have configured more than one global server connection, you can specify its name
-//      sh "${scannerHome}/bin/sonar-scanner"
-        sh "mvn sonar:sonar"
-    }
-        }
-        }
-        stage('deployment') {
-           steps{
-              deploy adapters: [tomcat9(credentialsId: '32bd3d00-bd53-4698-8b5b-c469be02beca', path: '', url: 'http://13.127.9.171:8080')], contextPath: 'tomcattesting', war: '**/*.war'
+        stage('Docker_login') {
+            steps{
+                script{
+                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){
+                        sh "docker build -t cicd ."
+                }
+              }
+             }
+           }
+        stage('Docker-push') {
+            steps{
+                script{
+                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){
+                        sh "docker tag cicd rishitha/end-to-end:BUILED_ID"
+                        sh "docker push rishitha/end-to-end:BUILED_ID"
+                }
+               }
+              }
             }
-        }
-    }
-}    
+            
+ }
+}

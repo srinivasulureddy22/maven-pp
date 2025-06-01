@@ -1,22 +1,56 @@
-# Maven
-# Build your Java project and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/java
-
+# azure-pipelines.yml
 trigger:
-- master
+  branches:
+    include:
+      - main
+
+parameters:
+  - name: javaVersion
+    displayName: 'Java Version'
+    type: string
+    default: '11'
+
+  - name: artifactName
+    displayName: 'Artifact Name'
+    type: string
+    default: 'my-java-artifact'
+
+  - name: mavenOptions
+    displayName: 'Maven Options'
+    type: string
+    default: '-DskipTests=true clean package'
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildDir: '$(System.DefaultWorkingDirectory)'
+  artifactStagingDirectory: '$(Build.ArtifactStagingDirectory)'
 
 steps:
-- task: Maven@3
-  inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.11'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+  - task: UseJava@1
+    inputs:
+      versionSpec: ${{ parameters.javaVersion }}
+      jdkArchitecture: 'x64'
+
+  - task: Maven@3
+    inputs:
+      mavenPomFile: 'pom.xml'
+      goals: ${{ parameters.mavenOptions }}
+      options: '-Xmx3072m'
+      publishJUnitResults: true
+      testResultsFiles: '**/surefire-reports/TEST-*.xml'
+      javaHomeOption: 'JDKVersion'
+      mavenVersionOption: 'Default'
+      mavenAuthenticateFeed: false
+
+  - task: CopyFiles@2
+    inputs:
+      contents: '**/target/*.jar'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: ${{ parameters.artifactName }}
+      publishLocation: 'Container'

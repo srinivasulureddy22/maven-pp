@@ -25,6 +25,7 @@ pipeline {
                 sh 'mvn clean package sonar:sonar'
               }
             }
+        } 
         stage('Docker_login') {
             steps{
                 script{
